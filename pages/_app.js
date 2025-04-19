@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }) {
   <>
     <GlobalStyles/>
     <CartContextProvider>
-     <Component {...pageProps} />;
+     <Component {...pageProps} />
     </CartContextProvider>
   </>
   )

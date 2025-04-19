@@ -1,9 +1,12 @@
-import Link from 'next/link';
-import React, { useContext, useState } from 'react';
-import styled, { css } from 'styled-components';
-import Center from './Center';
-import { CartContext } from './CartContext';
-import BarsIcon from './icons/Bars';
+"use client"
+
+import Link from "next/link"
+import { useContext, useState, useRef, useEffect } from "react"
+import styled, { css } from "styled-components"
+import Center from "./Center"
+import { CartContext } from "./CartContext"
+import BarsIcon from "./icons/Bars"
+import { ChevronDown } from "lucide-react"
 
 const StyledHeader = styled.header`
   background-color: #111;
@@ -11,7 +14,7 @@ const StyledHeader = styled.header`
   position: sticky;
   top: 0;
   z-index: 100;
-`;
+`
 
 const Logo = styled(Link)`
   color: #fff;
@@ -20,17 +23,17 @@ const Logo = styled(Link)`
   text-decoration: none;
   position: relative;
   z-index: 4;
-`;
+`
 
 const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 0;
-`;
+`
 
 const NavOverlay = styled.div`
-  display: ${({ $active }) => ($active ? 'block' : 'none')};
+  display: ${({ $active }) => ($active ? "block" : "none")};
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
@@ -39,7 +42,7 @@ const NavOverlay = styled.div`
   @media screen and (min-width: 768px) {
     display: none;
   }
-`;
+`
 
 const StyledNav = styled.nav`
   ${({ $mobileNavActive }) =>
@@ -76,7 +79,7 @@ const StyledNav = styled.nav`
     opacity: 1;
     pointer-events: auto;
   }
-`;
+`
 
 const NavLink = styled(Link)`
   display: block;
@@ -95,7 +98,7 @@ const NavLink = styled(Link)`
     padding: 0;
     font-size: 1rem;
   }
-`;
+`
 
 const NavButton = styled.button`
   background: transparent;
@@ -115,11 +118,99 @@ const NavButton = styled.button`
   @media screen and (min-width: 768px) {
     display: none;
   }
-`;
+`
+
+const DropdownContainer = styled.div`
+  position: relative;
+`
+
+const DropdownButton = styled.button`
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-weight: 500;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 14px 0;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #fff;
+  }
+
+  @media screen and (min-width: 768px) {
+    padding: 0;
+    font-size: 1rem;
+  }
+`
+
+const DropdownContent = styled.div`
+  display: ${(props) => (props.$isOpen ? "block" : "none")};
+  position: absolute;
+  background-color: #222;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 5;
+  border-radius: 4px;
+  overflow: hidden;
+  
+  @media screen and (max-width: 767px) {
+    position: relative;
+    box-shadow: none;
+    background-color: #333;
+    margin: 5px 0;
+  }
+`
+
+const DropdownItem = styled(Link)`
+  color: #ccc;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.3s, color 0.3s;
+  
+  &:hover {
+    background-color: #333;
+    color: #fff;
+  }
+`
 
 export default function Header() {
-  const [mobileNavActive, setMobileNavActive] = useState(false);
-  const { cartProducts } = useContext(CartContext);
+  const [mobileNavActive, setMobileNavActive] = useState(false)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const { cartProducts } = useContext(CartContext)
+
+  const categoriesRef = useRef(null)
+  const accountRef = useRef(null)
+
+  // Sample categories - replace with your actual categories
+  const categories = [
+    { name: "Electronics", slug: "electronics" },
+    { name: "Clothing", slug: "clothing" },
+    { name: "Home & Kitchen", slug: "home-kitchen" },
+    { name: "Books", slug: "books" },
+    { name: "Toys", slug: "toys" },
+  ]
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (categoriesRef.current && !categoriesRef.current.contains(event.target)) {
+        setCategoriesOpen(false)
+      }
+      if (accountRef.current && !accountRef.current.contains(event.target)) {
+        setAccountOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   return (
     <StyledHeader>
@@ -129,8 +220,41 @@ export default function Header() {
           <StyledNav $mobileNavActive={mobileNavActive}>
             <NavLink href="/">Home</NavLink>
             <NavLink href="/products">All Products</NavLink>
-            <NavLink href="/categories">Categories</NavLink>
-            <NavLink href="/account">Account</NavLink>
+
+            <DropdownContainer ref={categoriesRef}>
+              <DropdownButton onClick={() => setCategoriesOpen(!categoriesOpen)}>
+                Categories <ChevronDown size={16} />
+              </DropdownButton>
+              <DropdownContent $isOpen={categoriesOpen}>
+                {categories.map((category) => (
+                  <DropdownItem
+                    key={category.slug}
+                    href={`/categories/${category.slug}`}
+                    onClick={() => setCategoriesOpen(false)}
+                  >
+                    {category.name}
+                  </DropdownItem>
+                ))}
+              </DropdownContent>
+            </DropdownContainer>
+
+            <DropdownContainer ref={accountRef}>
+              <DropdownButton onClick={() => setAccountOpen(!accountOpen)}>
+                Account <ChevronDown size={16} />
+              </DropdownButton>
+              <DropdownContent $isOpen={accountOpen}>
+                <DropdownItem href="/account/settings" onClick={() => setAccountOpen(false)}>
+                  Settings
+                </DropdownItem>
+                <DropdownItem href="/account/favorites" onClick={() => setAccountOpen(false)}>
+                  Favorites
+                </DropdownItem>
+                <DropdownItem href="/logout" onClick={() => setAccountOpen(false)}>
+                  Logout
+                </DropdownItem>
+              </DropdownContent>
+            </DropdownContainer>
+
             <NavLink href="/cart">Cart ({cartProducts.length})</NavLink>
           </StyledNav>
           <NavButton onClick={() => setMobileNavActive((prev) => !prev)}>
@@ -140,5 +264,5 @@ export default function Header() {
       </Center>
       <NavOverlay $active={mobileNavActive} onClick={() => setMobileNavActive(false)} />
     </StyledHeader>
-  );
+  )
 }

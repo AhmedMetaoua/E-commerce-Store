@@ -61,7 +61,6 @@ const ButtonsWrapper = styled.div`
 `
 
 export default function Featured({product}) {
-    console.log(product)
     const {addProduct} = useContext(CartContext);
     function addFeatureToCart() {
         addProduct(product._id)

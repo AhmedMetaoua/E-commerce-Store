@@ -1,42 +1,162 @@
-import React, { useContext } from 'react';
-import styled from 'styled-components';
-import Button from './Button';
-import CartIcon from './icons/CartIcon';
-import Link from 'next/link';
-import { CartContext } from './CartContext';
+"use client"
+
+import { useContext, useState } from "react"
+import styled from "styled-components"
+import Button from "./Button"
+import CartIcon from "./icons/CartIcon"
+import Link from "next/link"
+import { CartContext } from "./CartContext"
+import { Heart, Eye, AlertCircle } from "lucide-react"
 
 const ProductWrapper = styled.div`
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 16px;
+  position: relative;
+  transition: all 0.4s ease;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 5px 2px 8px rgba(0,0,0,0.06);
+  background: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  
   &:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
   }
-`;
+`
+
+const NewBadge = styled.div`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(to right, #4f46e5, #8b5cf6);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 2;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+`
+
+const OutOfStockBadge = styled.div`
+  position: absolute;
+  top: 12px;
+  left: ${(props) => (props.$hasNewBadge ? "90px" : "12px")};
+  background: linear-gradient(to right, #ef4444, #f97316);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 2;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`
 
 const WhiteBox = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color:rgb(255, 255, 255);
-  padding: 20px;
-  height: 140px;
+  background-color: #f8f9fa;
+  padding: 25px;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.03);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover::after {
+    opacity: 1;
+  }
+  
   img {
     max-width: 100%;
-    max-height: 140px;
+    max-height: 160px;
     object-fit: contain;
-    transition: transform 0.3s ease;
+    transition: transform 0.5s ease;
+    ${(props) => (props.$outOfStock ? "opacity: 0.7;" : "")}
   }
+  
   &:hover img {
-    transform: scale(1.05);
+    transform: scale(1.08);
   }
-`;
+`
+
+const OutOfStockOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+`
+
+const OutOfStockText = styled.div`
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transform: rotate(-10deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+`
+
+const QuickActions = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 3;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+  
+  ${ProductWrapper}:hover & {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`
+
+const ActionButton = styled.button`
+  background: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  color: #555;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #4f46e5;
+    color: white;
+    transform: scale(1.1);
+  }
+`
 
 const ProductInfoBox = styled.div`
-  padding: 15px 20px;
-`;
+  padding: 20px;
+`
 
 const Title = styled(Link)`
   font-size: 1rem;
@@ -44,42 +164,136 @@ const Title = styled(Link)`
   color: #333;
   text-decoration: none;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+  
   &:hover {
-    color:rgb(42, 0, 209);
+    color: #4f46e5;
   }
-`;
+`
+
+const Description = styled.p`
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+`
 
 const PriceRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-`;
+  margin-top: 15px;
+`
 
 const Price = styled.div`
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #222;
-`;
+  color: #111;
+  
+  span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #666;
+    margin-left: 4px;
+  }
+`
 
-export default function ProductBox({ _id, title, description, price, images }) {
-  const { addProduct } = useContext(CartContext);
-  const url = '/product/' + _id;
+const StockInfo = styled.div`
+  font-size: 0.8rem;
+  color: ${(props) => (props.$inStock ? "#10b981" : "#ef4444")};
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`
+
+const AddToCartButton = styled(Button)`
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+  opacity: ${(props) => (props.$disabled ? 0.6 : 1)};
+  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
+  
+  &:hover {
+    transform: ${(props) => (props.$disabled ? "none" : "translateY(-2px)")};
+    box-shadow: ${(props) => (props.$disabled ? "none" : "0 5px 15px rgba(79, 70, 229, 0.3)")};
+  }
+  
+  svg {
+    margin-right: ${(props) => (props.$hasText ? "6px" : "0")};
+  }
+`
+
+export default function ProductBox({ _id, title, description, price, images, quantity, createdAt }) {
+  const { addProduct } = useContext(CartContext)
+  const [showFullButton, setShowFullButton] = useState(false)
+  const url = "/product/" + _id
+
+  const isOutOfStock = quantity <= 0
+  const isNew = new Date(createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+  // Truncate description if it's too long
+  const shortDescription = description && description.length > 60 ? description.substring(0, 60) + "..." : description
+
+  const handleAddToCart = () => {
+    if (!isOutOfStock) {
+      addProduct(_id)
+    }
+  }
 
   return (
-    <ProductWrapper>
-      <WhiteBox href={url}>
-        <img src={images?.[0]} alt={title} />
+    <ProductWrapper onMouseEnter={() => setShowFullButton(true)} onMouseLeave={() => setShowFullButton(false)}>
+      {isNew && <NewBadge>New</NewBadge>}
+      {isOutOfStock && (
+        <OutOfStockBadge $hasNewBadge={isNew}>
+          <AlertCircle size={12} />
+          Out of stock
+        </OutOfStockBadge>
+      )}
+
+      <WhiteBox href={url} $outOfStock={isOutOfStock}>
+        <img src={images?.[0] || "/placeholder.svg"} alt={title} />
       </WhiteBox>
+
+      <QuickActions>
+        <ActionButton title="Add to wishlist">
+          <Heart size={16} />
+        </ActionButton>
+        <ActionButton title="Quick view">
+          <Eye size={16} />
+        </ActionButton>
+      </QuickActions>
+
       <ProductInfoBox>
         <Title href={url}>{title}</Title>
+        {shortDescription && <Description>{shortDescription}</Description>}
+
+        <StockInfo $inStock={!isOutOfStock}>
+          {isOutOfStock ? "Out of stock" : `Available`}
+        </StockInfo>
+
         <PriceRow>
-          <Price>{price} DT</Price>
-          <Button primary outline onClick={() => addProduct(_id)}>
+          <Price>
+            {price} <span>DT</span>
+          </Price>
+          <AddToCartButton
+            primary
+            outline={!showFullButton}
+            hasText={showFullButton}
+            onClick={handleAddToCart}
+            $disabled={isOutOfStock}
+            disabled={isOutOfStock}
+          >
             <CartIcon />
-          </Button>
+            {showFullButton && (isOutOfStock ? "Unavailable" : "Add to cart")}
+          </AddToCartButton>
         </PriceRow>
       </ProductInfoBox>
     </ProductWrapper>
-  );
+  )
 }
