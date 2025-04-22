@@ -3,10 +3,11 @@
 import Link from "next/link"
 import { useContext, useState, useRef, useEffect } from "react"
 import styled, { css } from "styled-components"
-import Center from "./Center"
+import Center from "./ui/Center"
 import { CartContext } from "./CartContext"
 import BarsIcon from "./icons/Bars"
 import { ChevronDown } from "lucide-react"
+import { signOut, useSession } from "next-auth/react"
 
 const StyledHeader = styled.header`
   background-color: #111;
@@ -182,18 +183,12 @@ export default function Header() {
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const { cartProducts } = useContext(CartContext)
+  const { data: session, status } = useSession()
 
+  console.log('session',session)
   const categoriesRef = useRef(null)
   const accountRef = useRef(null)
 
-  // Sample categories - replace with your actual categories
-  const categories = [
-    { name: "Electronics", slug: "electronics" },
-    { name: "Clothing", slug: "clothing" },
-    { name: "Home & Kitchen", slug: "home-kitchen" },
-    { name: "Books", slug: "books" },
-    { name: "Toys", slug: "toys" },
-  ]
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -221,7 +216,7 @@ export default function Header() {
             <NavLink href="/">Home</NavLink>
             <NavLink href="/products">All Products</NavLink>
 
-            <DropdownContainer ref={categoriesRef}>
+            {/* <DropdownContainer ref={categoriesRef}>
               <DropdownButton onClick={() => setCategoriesOpen(!categoriesOpen)}>
                 Categories <ChevronDown size={16} />
               </DropdownButton>
@@ -236,28 +231,35 @@ export default function Header() {
                   </DropdownItem>
                 ))}
               </DropdownContent>
-            </DropdownContainer>
+            </DropdownContainer> */}
 
-            <DropdownContainer ref={accountRef}>
-              <DropdownButton onClick={() => setAccountOpen(!accountOpen)}>
-                Account <ChevronDown size={16} />
-              </DropdownButton>
-              <DropdownContent $isOpen={accountOpen}>
-                <DropdownItem href="/account/settings" onClick={() => setAccountOpen(false)}>
-                  Settings
-                </DropdownItem>
-                <DropdownItem href="/account/favorites" onClick={() => setAccountOpen(false)}>
-                  Favorites
-                </DropdownItem>
-                <DropdownItem href="/logout" onClick={() => setAccountOpen(false)}>
-                  Logout
-                </DropdownItem>
-              </DropdownContent>
-            </DropdownContainer>
+            {session ? (
+              <DropdownContainer ref={accountRef}>
+                <DropdownButton onClick={() => setAccountOpen(!accountOpen)}>
+                  Account ({session?.user?.name}) <ChevronDown size={16} />
+                </DropdownButton>
+                <DropdownContent $isOpen={accountOpen}>
+                  <DropdownItem href="/account/settings" onClick={() => setAccountOpen(false)}>
+                    Settings
+                  </DropdownItem>
+                  <DropdownItem href="/wishlist" onClick={() => setAccountOpen(false)}>
+                    Favorites
+                  </DropdownItem>
+                  <DropdownItem href="/" onClick={ async () => {
+                    await signOut();
+                    setAccountOpen(false)
+                    }}>
+                    Logout
+                  </DropdownItem>
+                </DropdownContent>
+              </DropdownContainer>
+            ) : (
+              <NavLink href="/login">Login</NavLink>
+            )}
 
-            <NavLink href="/cart">Cart ({cartProducts.length})</NavLink>
+            <NavLink href="/card">Cart ({cartProducts.length})</NavLink>
           </StyledNav>
-          <NavButton onClick={() => setMobileNavActive((prev) => !prev)}>
+          <NavButton onClick={() => setMobileNavActive(true)}>
             <BarsIcon />
           </NavButton>
         </Wrapper>

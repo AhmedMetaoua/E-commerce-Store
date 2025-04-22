@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/router"
 import Center from "@/components/Center"
 import Header from "@/components/Header"
 import ProductsGrid from "@/components/ProductsGrid"
@@ -303,6 +304,8 @@ const NoResults = styled.div`
 `
 
 export default function ProductsPage({ products, categories }) {
+  const router = useRouter()
+  const { query } = router
   const [filteredProducts, setFilteredProducts] = useState(products)
   const [activeFilters, setActiveFilters] = useState({
     categories: [],
@@ -313,6 +316,7 @@ export default function ProductsPage({ products, categories }) {
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [gridView, setGridView] = useState("grid4") // grid4 or grid2
+  const [pageTitle, setPageTitle] = useState("All Products")
 
   // Get all unique properties across all categories
   const allProperties = {}
@@ -338,6 +342,7 @@ export default function ProductsPage({ products, categories }) {
   // Build category hierarchy
   const categoryHierarchy = {}
   const topLevelCategories = []
+  const childToParentMap = {}
 
   categories.forEach((category) => {
     if (!category.parent) {
@@ -351,32 +356,95 @@ export default function ProductsPage({ products, categories }) {
       const parentId = typeof category.parent === "object" ? category.parent._id : category.parent
       if (categoryHierarchy[parentId]) {
         categoryHierarchy[parentId].push(category)
+        childToParentMap[category._id] = parentId
       }
     }
   })
 
-  // Apply filters and sorting
+  // Check URL for category parameter on initial load - ONLY RUNS ONCE
+  useEffect(() => {
+    if (query.category) {
+      const categoryId = query.category
+      const category = categories.find((c) => c._id === categoryId)
+
+      if (category) {
+        // Check if this is a child category
+        const newCategories = [categoryId]
+
+        // If it's a child category, also select its parent
+        if (category.parent) {
+          const parentId = typeof category.parent === "object" ? category.parent._id : category.parent
+          newCategories.push(parentId)
+        }
+
+        // Set the active category filter
+        setActiveFilters((prev) => ({
+          ...prev,
+          categories: newCategories,
+        }))
+
+        // Update page title
+        setPageTitle(`${category.name} Products`)
+      }
+    }
+  }, []) // Empty dependency array means this only runs once on mount
+
+  // Helper function to identify child categories that are selected
+  const getSelectedChildCategories = () => {
+    const selectedChildCats = []
+
+    activeFilters.categories.forEach((catId) => {
+      // Check if this is a child category with its parent also selected
+      const category = categories.find((c) => c._id === catId)
+      if (category && category.parent) {
+        const parentId = typeof category.parent === "object" ? category.parent._id : category.parent
+        if (activeFilters.categories.includes(parentId)) {
+          selectedChildCats.push(catId)
+        }
+      }
+    })
+
+    return selectedChildCats
+  }
+
+  // Apply filters and sorting with proper dependency tracking
   useEffect(() => {
     let result = [...products]
 
     // Filter by categories
     if (activeFilters.categories.length > 0) {
-      // Include products from selected categories and their children
-      const allCategoryIds = [...activeFilters.categories]
+      // Check if we have any child categories with their parents also selected
+      const selectedChildCats = getSelectedChildCategories()
 
-      // Add child category IDs if parent is selected
-      activeFilters.categories.forEach((catId) => {
-        if (categoryHierarchy[catId]) {
-          categoryHierarchy[catId].forEach((childCat) => {
-            allCategoryIds.push(childCat._id)
-          })
-        }
-      })
+      if (selectedChildCats.length > 0) {
+        // If we have child categories with their parents selected,
+        // only show products from the child categories
+        result = result.filter((product) => {
+          const productCatId = typeof product.category === "object" ? product.category._id : product.category
+          return selectedChildCats.includes(productCatId)
+        })
+      } else {
+        // Otherwise, show products from all selected categories and their children
+        const allCategoryIds = new Set()
 
-      result = result.filter((product) => {
-        const productCatId = typeof product.category === "object" ? product.category._id : product.category
-        return allCategoryIds.includes(productCatId)
-      })
+        // Add all selected categories
+        activeFilters.categories.forEach((catId) => {
+          allCategoryIds.add(catId)
+
+          // If this is a parent category, also add all its children
+          if (categoryHierarchy[catId]) {
+            categoryHierarchy[catId].forEach((childCat) => {
+              allCategoryIds.add(childCat._id)
+            })
+          }
+        })
+
+        // Filter products based on the complete set of categories
+        result = result.filter((product) => {
+          const productCatId = typeof product.category === "object" ? product.category._id : product.category
+          return allCategoryIds.has(productCatId)
+        })
+      }
     }
 
     // Filter by properties
@@ -426,13 +494,49 @@ export default function ProductsPage({ products, categories }) {
     }
 
     setFilteredProducts(result)
-  }, [activeFilters, sortOption, products, categoryHierarchy])
+  }, [ activeFilters.categories, JSON.stringify(activeFilters.properties), activeFilters.priceRange.min, activeFilters.priceRange.max, sortOption])
 
   const handleCategoryFilter = (categoryId) => {
     setActiveFilters((prev) => {
-      const newCategories = prev.categories.includes(categoryId)
-        ? prev.categories.filter((id) => id !== categoryId)
-        : [...prev.categories, categoryId]
+      // Check if we're adding or removing this category
+      const isAdding = !prev.categories.includes(categoryId)
+
+      let newCategories = [...prev.categories]
+
+      if (isAdding) {
+        // Adding a category
+        newCategories.push(categoryId)
+
+        // If it's a child category, also add its parent if not already selected
+        const category = categories.find((c) => c._id === categoryId)
+        if (category && category.parent) {
+          const parentId = typeof category.parent === "object" ? category.parent._id : category.parent
+          if (!newCategories.includes(parentId)) {
+            newCategories.push(parentId)
+          }
+        }
+      } else {
+        // Removing a category
+        newCategories = newCategories.filter((id) => id !== categoryId)
+
+        // If it's a parent category, also remove all its children
+        if (categoryHierarchy[categoryId]) {
+          const childIds = categoryHierarchy[categoryId].map((child) => child._id)
+          newCategories = newCategories.filter((id) => !childIds.includes(id))
+        }
+      }
+
+      // Update URL with the selected category - MOVED OUTSIDE THE STATE SETTER
+      if (newCategories.length === 1) {
+        const category = categories.find((c) => c._id === newCategories[0])
+        if (category) {
+          // We'll handle the URL update and title change in the useEffect below
+          setPageTitle(`${category.name} Products`)
+        }
+      } else if (newCategories.length === 0) {
+        // We'll handle the URL update and title change in the useEffect below
+        setPageTitle("All Products")
+      }
 
       return {
         ...prev,
@@ -440,6 +544,28 @@ export default function ProductsPage({ products, categories }) {
       }
     })
   }
+
+  // Handle URL updates after state changes
+  useEffect(() => {
+    if (activeFilters.categories.length === 1) {
+      router.push(
+        {
+          pathname: router.pathname,
+          query: { category: activeFilters.categories[0] },
+        },
+        undefined,
+        { shallow: true }
+      )
+    } else if (activeFilters.categories.length === 0) {
+      router.push(
+        {
+          pathname: router.pathname,
+        },
+        undefined,
+        { shallow: true }
+      )
+    }
+  }, [activeFilters.categories, router.pathname])
 
   const handlePropertyFilter = (property, value) => {
     setActiveFilters((prev) => {
@@ -474,14 +600,45 @@ export default function ProductsPage({ products, categories }) {
       properties: {},
       priceRange: { min: "", max: "" },
     })
+    setPageTitle("All Products")
+    // URL update handled by the effect watching activeFilters.categories
   }
 
   const removeFilter = (type, value) => {
     if (type === "category") {
-      setActiveFilters((prev) => ({
-        ...prev,
-        categories: prev.categories.filter((id) => id !== value),
-      }))
+      setActiveFilters((prev) => {
+        let newCategories = prev.categories.filter((id) => id !== value)
+
+        // If it's a parent category, also remove all its children
+        if (categoryHierarchy[value]) {
+          const childIds = categoryHierarchy[value].map((child) => child._id)
+          newCategories = newCategories.filter((id) => !childIds.includes(id))
+        }
+
+        // If it's a child category and its parent is still selected, keep the parent
+        const category = categories.find((c) => c._id === value)
+        if (category && category.parent) {
+          const parentId = typeof category.parent === "object" ? category.parent._id : category.parent
+          if (newCategories.includes(parentId) && !newCategories.some((id) => childToParentMap[id] === parentId)) {
+            // If no other children of this parent are selected, keep the parent
+          }
+        }
+
+        // Update page title - URL updates handled by the effect watching activeFilters.categories
+        if (newCategories.length === 1) {
+          const category = categories.find((c) => c._id === newCategories[0])
+          if (category) {
+            setPageTitle(`${category.name} Products`)
+          }
+        } else if (newCategories.length === 0) {
+          setPageTitle("All Products")
+        }
+
+        return {
+          ...prev,
+          categories: newCategories,
+        }
+      })
     } else if (type === "price") {
       setActiveFilters((prev) => ({
         ...prev,
@@ -575,8 +732,8 @@ export default function ProductsPage({ products, categories }) {
   return (
     <PageContainer>
       <Head>
-        <title>All Products | E-Commerce</title>
-        <meta name="description" content="Browse our complete collection of products" />
+        <title>{pageTitle} | E-Commerce</title>
+        <meta name="description" content={`Browse our collection of ${pageTitle.toLowerCase()}`} />
       </Head>
 
       <Header />
@@ -584,7 +741,7 @@ export default function ProductsPage({ products, categories }) {
       <Center>
         <PageHeader>
           <div>
-            <Title>All Products</Title>
+            <Title>{pageTitle}</Title>
             <ResultCount>{filteredProducts.length} products found</ResultCount>
           </div>
         </PageHeader>
@@ -596,7 +753,7 @@ export default function ProductsPage({ products, categories }) {
           </MobileFilterButton>
 
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <FilterIcon/>
+            <FilterIcon size={16} />
             <SortContainer>
               <SortButton onClick={() => setShowSortDropdown(!showSortDropdown)}>
                 <span>{getSortLabel()}</span>
@@ -660,7 +817,7 @@ export default function ProductsPage({ products, categories }) {
                     Name: Z to A
                   </SortOption>
                 </SortDropdown>
-              )}  
+              )}
             </SortContainer>
 
             {/* <ViewToggle>
@@ -757,3 +914,6 @@ export async function getServerSideProps() {
     },
   }
 }
+
+// Below this would be your styled components declarations
+// PageContainer, Title, ResultCount, etc.

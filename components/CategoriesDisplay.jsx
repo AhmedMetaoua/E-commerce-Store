@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import styled from "styled-components"
-import Center from "./Center"
+import Center from "./ui/Center"
 import CategoryProducts from "./CategoryProducts"
 
 const CategoriesWrapper = styled.div`
@@ -87,6 +87,11 @@ export default function CategoriesDisplay({ products = [], categories = [] }) {
           }
           groupedProducts[parentId].push(product)
         }
+      })
+      
+      // Sort products by creation date (newest first) for each category
+      Object.keys(groupedProducts).forEach(categoryId => {
+        groupedProducts[categoryId].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       })
       
       setParentCategories(parents)

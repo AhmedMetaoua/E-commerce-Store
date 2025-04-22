@@ -1,22 +1,35 @@
-import { CartContextProvider } from "@/components/CartContext";
-import { createGlobalStyle } from "styled-components";
+import { CartContextProvider } from "@/components/CartContext"
+import { WishlistContextProvider } from "@/components/WishlistContext"
+import { SessionProvider } from "next-auth/react"
+import { createGlobalStyle } from "styled-components"
 
 const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;500;600;700&display=swap');
-  body {
+  body{
     background-color: #eee;
-    padding: 0;
-    margin: 0;
-    font-family: "Poppins", sans-serif;
+    padding:0;
+    margin:0;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Ensure modals are properly displayed */
+  #modal-root {
+    position: fixed;
+    z-index: 1100;
   }
 `
-export default function App({ Component, pageProps }) {
-  return ( 
-  <>
-    <GlobalStyles/>
-    <CartContextProvider>
-     <Component {...pageProps} />
-    </CartContextProvider>
-  </>
+
+export default function App({ Component, pageProps: { session, ...pageProps } }) {
+  return (
+    <>
+      <GlobalStyles />
+      <SessionProvider session={session}>
+        <WishlistContextProvider>
+          <CartContextProvider>
+            <Component {...pageProps} />
+            <div id="modal-root"></div>
+          </CartContextProvider>
+        </WishlistContextProvider>
+      </SessionProvider>
+    </>
   )
 }

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import styled from "styled-components"
 import Link from "next/link"
 import ProductBox from "./ProductBox"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 
 const CategorySection = styled.section`
   background: linear-gradient(to bottom, #f8f9fa, #ffffff);
@@ -71,25 +71,29 @@ const ViewAllLink = styled(Link)`
   }
 `
 
-const ProductsContainer = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 25px;
+const ProductsScrollContainer = styled.div`
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+`
+
+const ProductsRow = styled.div`
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 10px 5px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
   
-  @media screen and (min-width: 500px) {
-    grid-template-columns: 1fr 1fr;
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
   }
   
-  @media screen and (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  @media screen and (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  /* Animation for grid items */
+  /* Animation for items */
   & > div {
+    flex: 0 0 auto;
+    width: 280px;
     opacity: 0;
     transform: translateY(20px);
     animation: fadeInUp 0.5s forwards;
@@ -107,12 +111,49 @@ const ProductsContainer = styled.div`
   & > div:nth-child(2) { animation-delay: 0.2s; }
   & > div:nth-child(3) { animation-delay: 0.3s; }
   & > div:nth-child(4) { animation-delay: 0.4s; }
+  & > div:nth-child(5) { animation-delay: 0.5s; }
+  & > div:nth-child(6) { animation-delay: 0.6s; }
+`
+
+const ScrollButton = styled.button`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #f9fafb;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  &.left {
+    left: 10px;
+  }
+  
+  &.right {
+    right: 10px;
+  }
 `
 
 const EmptyState = styled.div`
   text-align: center;
   padding: 30px 20px;
-  grid-column: 1 / -1;
   color: #666;
   background: rgba(0, 0, 0, 0.02);
   border-radius: 8px;
@@ -135,14 +176,15 @@ const SubcategoriesList = styled.div`
   margin-bottom: 20px;
 `
 
-const SubcategoryTag = styled(Link)`
-  background: #f1f5f9;
+const SubcategoryTag = styled.button`
+  background: ${(props) => (props.$active ? "#e0e7ff" : "#f1f5f9")};
   color: #4f46e5;
   font-size: 0.85rem;
   font-weight: 500;
   padding: 6px 12px;
   border-radius: 20px;
-  text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: all 0.2s ease;
   
   &:hover {
@@ -162,8 +204,10 @@ const categoryColors = [
 ]
 
 export default function CategoryProducts({ category, products = [], allCategories = [] }) {
-  const [recentProducts, setRecentProducts] = useState([])
+  const [displayedProducts, setDisplayedProducts] = useState([])
   const [subcategories, setSubcategories] = useState([])
+  const [activeSubcategory, setActiveSubcategory] = useState(null)
+  const scrollContainerRef = useRef(null)
 
   // Get a color based on category ID to ensure consistent colors
   const getCategoryColor = (categoryId) => {
@@ -183,20 +227,39 @@ export default function CategoryProducts({ category, products = [], allCategorie
       setSubcategories(childCategories)
     }
 
-    // Filter products that were created in the last 7 days
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-
-    const filtered = products.filter((product) => {
-      const createdAt = new Date(product.createdAt)
-      return createdAt >= sevenDaysAgo
-    })
-
-    // Sort by creation date (newest first)
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-    setRecentProducts(filtered)
+    // Sort products by creation date (newest first)
+    const sortedProducts = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    setDisplayedProducts(sortedProducts)
   }, [products, category, allCategories])
+
+  const handleSubcategoryClick = (subcategoryId) => {
+    if (activeSubcategory === subcategoryId) {
+      // If clicking the active subcategory, show all products
+      setActiveSubcategory(null)
+      setDisplayedProducts([...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+    } else {
+      // Filter products by subcategory
+      setActiveSubcategory(subcategoryId)
+      const filtered = products.filter((product) => {
+        const productCategoryId =
+          typeof product.category === "object" ? product.category._id.toString() : product.category.toString()
+        return productCategoryId === subcategoryId
+      })
+      setDisplayedProducts(filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+    }
+  }
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -600, behavior: "smooth" })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 600, behavior: "smooth" })
+    }
+  }
 
   if (!category) return null
 
@@ -204,7 +267,8 @@ export default function CategoryProducts({ category, products = [], allCategorie
     <CategorySection $color={getCategoryColor(category._id)}>
       <TitleContainer>
         <Title>{category.name}</Title>
-        <ViewAllLink href={`/categories/${category._id}`}>
+        {/* Updated to link to products page with category filter */}
+        <ViewAllLink href={`/products?category=${category._id}`}>
           View all {category.name}
           <ArrowRight size={16} />
         </ViewAllLink>
@@ -213,23 +277,40 @@ export default function CategoryProducts({ category, products = [], allCategorie
       {subcategories.length > 0 && (
         <SubcategoriesList>
           {subcategories.map((subcat) => (
-            <SubcategoryTag key={subcat._id} href={`/categories/${subcat._id}`}>
+            <SubcategoryTag
+              key={subcat._id}
+              $active={activeSubcategory === subcat._id}
+              onClick={() => handleSubcategoryClick(subcat._id)}
+            >
               {subcat.name}
             </SubcategoryTag>
           ))}
         </SubcategoriesList>
       )}
 
-      {recentProducts.length > 0 ? (
-        <ProductsContainer>
-          {recentProducts.slice(0, 4).map((product) => (
-            <ProductBox key={product._id} {...product} />
-          ))}
-        </ProductsContainer>
+      {displayedProducts.length > 0 ? (
+        <ProductsScrollContainer>
+          <ScrollButton className="left" onClick={scrollLeft}>
+            <ChevronLeft size={20} />
+          </ScrollButton>
+
+          <ProductsRow ref={scrollContainerRef}>
+            {displayedProducts.map((product) => (
+              <ProductBox key={product._id} {...product} />
+            ))}
+          </ProductsRow>
+
+          <ScrollButton className="right" onClick={scrollRight}>
+            <ChevronRight size={20} />
+          </ScrollButton>
+        </ProductsScrollContainer>
       ) : (
         <EmptyState>
-          <h3>No new products in {category.name}</h3>
-          <p>Check back soon for new arrivals in this category!</p>
+          <h3>
+            No products in{" "}
+            {activeSubcategory ? subcategories.find((s) => s._id === activeSubcategory)?.name : category.name}
+          </h3>
+          <p>Check back soon for new products in this category!</p>
         </EmptyState>
       )}
     </CategorySection>

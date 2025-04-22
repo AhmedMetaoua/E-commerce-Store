@@ -1,7 +1,7 @@
 "use client"
 import styled from "styled-components"
 import Link from "next/link"
-import Center from "./Center"
+import Center from "./ui/Center"
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react"
 
 const StyledFooter = styled.footer`

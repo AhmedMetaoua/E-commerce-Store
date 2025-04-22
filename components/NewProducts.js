@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import styled, { keyframes } from "styled-components"
-import Center from "./Center"
+import Center from "./ui/Center"
 import Link from "next/link"
 import { ArrowRight, Star, TrendingUp } from "lucide-react"
 
@@ -40,10 +40,10 @@ const fadeIn = keyframes`
 
 const SectionWrapper = styled.section`
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  padding: 60px 30px;
+  padding: 40px 20px;
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-  margin: 60px 0;
+  margin: 40px 0;
   position: relative;
   overflow: hidden;
   
@@ -53,9 +53,9 @@ const SectionWrapper = styled.section`
     top: 0;
     left: 0;
     width: 100%;
-    height: 8px;
+    height: 6px;
     background: linear-gradient(to right, #4f46e5, #8b5cf6, #ec4899);
-    border-radius: 8px 8px 0 0;
+    border-radius: 6px 6px 0 0;
   }
   
   &::after {
@@ -63,8 +63,8 @@ const SectionWrapper = styled.section`
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 300px;
-    height: 300px;
+    width: 200px;
+    height: 200px;
     background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, rgba(79, 70, 229, 0) 70%);
     z-index: 0;
     border-radius: 50%;
@@ -75,13 +75,13 @@ const HeaderContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   position: relative;
   z-index: 2;
 `
 
 const Title = styled.h2`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #111;
   margin: 0;
@@ -89,7 +89,7 @@ const Title = styled.h2`
   display: inline-block;
   
   @media screen and (min-width: 768px) {
-    font-size: 3rem;
+    font-size: 2.5rem;
   }
   
   span {
@@ -102,10 +102,10 @@ const Title = styled.h2`
     &::after {
       content: '';
       position: absolute;
-      bottom: 5px;
+      bottom: 4px;
       left: 0;
       width: 100%;
-      height: 6px;
+      height: 5px;
       background: linear-gradient(to right, rgba(79, 70, 229, 0.3), rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
       border-radius: 3px;
       z-index: -1;
@@ -116,13 +116,13 @@ const Title = styled.h2`
 const ViewAllLink = styled(Link)`
   display: flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #4f46e5;
   text-decoration: none;
   transition: all 0.3s ease;
   background: white;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 30px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   
@@ -133,7 +133,7 @@ const ViewAllLink = styled(Link)`
   }
   
   svg {
-    margin-left: 8px;
+    margin-left: 6px;
     transition: transform 0.3s ease;
   }
   
@@ -144,8 +144,8 @@ const ViewAllLink = styled(Link)`
 
 const Subtitle = styled.p`
   color: #555;
-  font-size: 1.1rem;
-  margin: -20px 0 40px;
+  font-size: 1rem;
+  margin: -15px 0 30px;
   max-width: 700px;
   line-height: 1.6;
   animation: ${fadeIn} 0.8s ease-out;
@@ -154,7 +154,7 @@ const Subtitle = styled.p`
 const FeaturedGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 30px;
+  gap: 20px;
   position: relative;
   z-index: 1;
   
@@ -164,17 +164,17 @@ const FeaturedGrid = styled.div`
   }
   
   @media screen and (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     grid-template-rows: auto auto;
   }
 `
 
 const ProductCard = styled(Link)`
   position: relative;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   background: white;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
   transition: all 0.4s ease;
   height: 100%;
   display: flex;
@@ -185,8 +185,8 @@ const ProductCard = styled(Link)`
   animation-delay: ${(props) => props.$delay || "0s"};
   
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 24px rgba(0, 0, 0, 0.1);
   }
   
   &::after {
@@ -211,7 +211,7 @@ const ProductCard = styled(Link)`
       props.$featured &&
       `
       grid-column: span 2;
-      grid-row: span 2;
+      grid-row: span 1;
     `}
   }
   
@@ -220,19 +220,19 @@ const ProductCard = styled(Link)`
       props.$featured &&
       `
       grid-column: span 2;
-      grid-row: span 2;
+      grid-row: span 1;
     `}
   }
 `
 
 const ProductImage = styled.div`
   width: 100%;
-  height: ${(props) => (props.$featured ? "400px" : "220px")};
+  height: ${(props) => (props.$featured ? "240px" : "180px")};
   position: relative;
   overflow: hidden;
   
   @media screen and (max-width: 768px) {
-    height: 220px;
+    height: 180px;
   }
   
   img {
@@ -249,48 +249,48 @@ const ProductImage = styled.div`
 
 const NewBadge = styled.div`
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 12px;
+  left: 12px;
   background: linear-gradient(to right, #4f46e5, #8b5cf6);
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
   z-index: 2;
   box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   
   ${(props) =>
     props.$featured &&
     `
-    font-size: 0.9rem;
-    padding: 8px 16px;
+    font-size: 0.8rem;
+    padding: 6px 12px;
   `}
 `
 
 const FeaturedBadge = styled.div`
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
   background: linear-gradient(to right, #f59e0b, #ef4444);
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
   z-index: 2;
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   animation: ${float} 3s ease-in-out infinite;
 `
 
 const ProductInfo = styled.div`
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -299,10 +299,10 @@ const ProductInfo = styled.div`
 `
 
 const ProductTitle = styled.h3`
-  font-size: ${(props) => (props.$featured ? "1.5rem" : "1.1rem")};
+  font-size: ${(props) => (props.$featured ? "1.2rem" : "1rem")};
   font-weight: 600;
   color: #111;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   transition: color 0.3s ease;
   
   ${ProductCard}:hover & {
@@ -311,14 +311,14 @@ const ProductTitle = styled.h3`
 `
 
 const ProductPrice = styled.div`
-  font-size: ${(props) => (props.$featured ? "1.5rem" : "1.2rem")};
+  font-size: ${(props) => (props.$featured ? "1.2rem" : "1.1rem")};
   font-weight: 700;
   color: #111;
   margin-top: auto;
-  padding-top: 15px;
+  padding-top: 12px;
   
   span {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: #666;
     margin-left: 4px;
@@ -326,15 +326,15 @@ const ProductPrice = styled.div`
 `
 
 const ProductCategory = styled.div`
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #666;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 `
 
 const ProductDescription = styled.p`
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #555;
-  margin: 0 0 15px;
+  margin: 0 0 12px;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -346,7 +346,7 @@ const RatingContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 `
 
 const ShimmerEffect = styled.div`
@@ -393,7 +393,7 @@ export default function NewProducts({ products }) {
 
       // Select one product from each category until we have 5 or run out of categories
       const categories = Array.from(categoriesMap.keys())
-      for (let i = 0; i < Math.min(5, categories.length); i++) {
+      for (let i = 0; i < Math.min(9, categories.length); i++) {
         const category = categories[i]
         const productsInCategory = categoriesMap.get(category)
         if (productsInCategory && productsInCategory.length > 0) {
@@ -404,9 +404,9 @@ export default function NewProducts({ products }) {
       }
 
       // If we don't have 5 products yet, add more from categories with multiple products
-      if (selectedProducts.length < 5) {
+      if (selectedProducts.length < 9) {
         for (const [_, productsInCategory] of categoriesMap.entries()) {
-          if (selectedProducts.length >= 5) break
+          if (selectedProducts.length >= 9) break
           if (productsInCategory && productsInCategory.length > 0) {
             selectedProducts.push(productsInCategory[0])
           }
@@ -414,13 +414,13 @@ export default function NewProducts({ products }) {
       }
 
       // If we still don't have 5, just add from the sorted list
-      if (selectedProducts.length < 5 && sortedProducts.length > 0) {
-        const remaining = 5 - selectedProducts.length
+      if (selectedProducts.length < 9 && sortedProducts.length > 0) {
+        const remaining = 9 - selectedProducts.length
         const additionalProducts = sortedProducts.filter((p) => !selectedProducts.includes(p)).slice(0, remaining)
         selectedProducts.push(...additionalProducts)
       }
 
-      setFeaturedProducts(selectedProducts.slice(0, 5))
+      setFeaturedProducts(selectedProducts.slice(0, 9))
     }
   }, [products])
 
@@ -439,7 +439,7 @@ export default function NewProducts({ products }) {
           </Title>
           <ViewAllLink href="/products">
             View all products
-            <ArrowRight size={18} />
+            <ArrowRight size={16} />
           </ViewAllLink>
         </HeaderContainer>
         <Subtitle>
@@ -455,11 +455,11 @@ export default function NewProducts({ products }) {
                 <ShimmerEffect />
               </ProductImage>
               <NewBadge $featured={true}>
-                <TrendingUp size={16} />
+                <TrendingUp size={14} />
                 Just Arrived
               </NewBadge>
               <FeaturedBadge>
-                <Star size={16} fill="currentColor" />
+                <Star size={14} fill="currentColor" />
                 Featured
               </FeaturedBadge>
               <ProductInfo>
@@ -470,7 +470,7 @@ export default function NewProducts({ products }) {
                 <ProductDescription>{featuredProduct.description}</ProductDescription>
                 <RatingContainer>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} size={16} fill="#f59e0b" color="#f59e0b" />
+                    <Star key={star} size={14} fill="#f59e0b" color="#f59e0b" />
                   ))}
                 </RatingContainer>
                 <ProductPrice $featured={true}>
@@ -488,7 +488,7 @@ export default function NewProducts({ products }) {
                 <ShimmerEffect />
               </ProductImage>
               <NewBadge>
-                <TrendingUp size={14} />
+                <TrendingUp size={12} />
                 New
               </NewBadge>
               <ProductInfo>

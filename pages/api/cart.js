@@ -1,9 +1,46 @@
-import dbConnect from "@/lib/mongoose";
-import Product from "@/models/Product";
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "./auth/[...nextauth]"
+import dbConnect from "@/lib/mongoose"
+import User from "@/models/User"
+import Product from "@/models/Product"
 
-export default async function handle(req, res) {
-    await dbConnect();
+export default async function handler(req, res) {
+  const session = await getServerSession(req, res, authOptions)
+  console.log("SESSION:::", session)
+  if (!session) {
+    return res.status(401).json({ message: "Not authenticated" })
+  }
 
-    const ids = req.body.ids;
-    res.json(await Product.find({_id: ids}))
-}
+  await dbConnect()
+
+  const user = await User.findById(session?.user?.id)
+
+  if (!user || !session) {
+    return res.status(404).json({ message: "User not found" })
+  }
+
+  if (req.method === "GET") {
+    return res.json(user.cart || [])
+  }
+
+  if (req.method === "POST") {
+    const { products, ids } = req.body;
+  
+    if (products) {
+      // Save cart to DB
+      user.cart = products;
+      await user.save();
+      return res.json(user.cart);
+    }
+  
+    if (ids) {
+      // Get full product info from ids
+      const productsData = await Product.find({ _id: { $in: ids } }); // assuming Product model exists
+      return res.json(productsData);
+    }
+  
+    return res.status(400).json({ message: "Invalid POST body" });
+  }
+
+  return res.status(405).json({ message: "Method not allowed" })
+} 

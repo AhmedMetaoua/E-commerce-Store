@@ -49,4 +49,4 @@ export default async function handle(req, res) {
         url:session.url,
       })
 
-}
+} 
