@@ -10,6 +10,8 @@ export default async function handle(req, res) {
     }
 
     const {name, email, city, postalCode, streetAddress, country, cartProducts} = req.body;
+    console.log('Received checkout data:', req.body);
+
     await dbConnect();
     const productsIds = cartProducts
     const uniqueIds = [...new Set(productsIds)]
@@ -35,12 +37,13 @@ export default async function handle(req, res) {
         line_items, name, email, city, postalCode, streetAddress, country, paid: false,
     })
 
+    console.log('order id from checkout: ',orderDoc._id.toString())
     const session = await stripe.checkout.sessions.create({
         line_items,
         mode: 'payment',
         customer_email: email,
-        success_url: process.env.PUBLIC_URL + '/cart?success=1',
-        cancel_url: process.env.PUBLIC_URL + '/cart?canceled=1',
+        success_url: process.env.PUBLIC_URL + '/card?success=1&id=' + orderDoc._id.toString(),
+        cancel_url: process.env.PUBLIC_URL + '/card?canceled=1',
         metadata: {orderId: orderDoc._id.toString(), test:'ok'},
       });
 

@@ -400,15 +400,24 @@ export default function CartPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   
   useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      window.location.href.includes('success')
-    ) {
+    if ( typeof window !== 'undefined' && window.location.href.includes('success') ) {
+      const url = new URL(window.location.href);
+      const success = url.searchParams.get('success');
+      const orderId = url.searchParams.get('id');
+      localStorage.setItem('success :',success)
+      localStorage.setItem('id from card page',orderId)
+      console.log('success :',success , 'id from card page',orderId)
+
       clearCart();
       setIsSuccess(true);
-      axios.get('/api/cart').then((response) => {
+      axios.post('/api/cart', {products: []}).then((response) => {
         setProducts(response.data);
       });
+
+      axios.put('/api/orders', { orderId })
+        .then(() => console.log('Order marked as paid.'))
+        .catch(err => console.error('Error updating order:', err));
+    
     }
   }, []);
 
@@ -496,6 +505,7 @@ export default function CartPage() {
   if (!session) {
     return <LoginPage/>
   }
+  
   return (
     <>
       <Header />

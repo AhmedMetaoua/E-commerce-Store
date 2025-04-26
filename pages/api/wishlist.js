@@ -12,7 +12,8 @@ export default async function handler(req, res) {
 
   await dbConnect()
 
-  const user = await User.findById(session.user.id)
+  const user = await User.findOne( {email: session.user.email} )
+   // console.log('session:' ,session)
 
   if (!user) {
     return res.status(404).json({ message: "User not found" })

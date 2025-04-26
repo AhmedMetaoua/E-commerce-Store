@@ -11,7 +11,7 @@ export function CartContextProvider({ children }) {
   const { data: session, status } = useSession()
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (session) {
       // Load cart from server when user is authenticated
       axios.get('/api/cart')
         .then(response => {
@@ -20,26 +20,30 @@ export function CartContextProvider({ children }) {
         .catch(error => {
           console.error('Error loading cart:', error)
         })
-    } else if (status === "unauthenticated") {
-      // Load cart from localStorage when user is not authenticated
-      const savedCart = localStorage.getItem('cart')
-      if (savedCart) {
-        setCartProducts(JSON.parse(savedCart))
-      }
-    }
+    } 
+    // else if (status === "unauthenticated") {
+    //   // Load cart from localStorage when user is not authenticated
+    //   const savedCart = localStorage.getItem('cart')
+    //   if (savedCart) {
+    //     setCartProducts(JSON.parse(savedCart))
+    //   }
+    // }
   }, [status])
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (session) {
       // Save cart to server when user is authenticated
-      axios.post('/api/cart', { products: cartProducts })
-        .catch(error => {
-          console.error('Error saving cart:', error)
-        })
-    } else if (status === "unauthenticated") {
-      // Save cart to localStorage when user is not authenticated
-      localStorage.setItem('cart', JSON.stringify(cartProducts))
-    }
+      if (cartProducts.length > 0) {
+        axios.post('/api/cart', { products: cartProducts })
+          .catch(error => {
+            console.error('Error saving cart:', error)
+          })
+        }
+    } 
+    // else if (status === "unauthenticated") {
+    //   // Save cart to localStorage when user is not authenticated
+    //   localStorage.setItem('cart', JSON.stringify(cartProducts))
+    // }
   }, [cartProducts, status])
 
   const addProduct = (productId) => {

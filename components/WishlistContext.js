@@ -30,7 +30,7 @@ export function WishlistContextProvider({ children }) {
   }, [status])
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (session) {
       // Save wishlist to server when user is authenticated
       axios.post('/api/wishlist', { products: wishlistProducts })
         .catch(error => {

@@ -185,7 +185,6 @@ export default function Header() {
   const { cartProducts } = useContext(CartContext)
   const { data: session, status } = useSession()
 
-  console.log('session',session)
   const categoriesRef = useRef(null)
   const accountRef = useRef(null)
 
