@@ -28,11 +28,13 @@ export const authOptions = {
           if (!isValid) {
             throw new Error("Invalid password")
           }
-          
+          console.log('user: ', user._id.toString())
           return {
             id: user._id,
             email: user.email,
             name: user.name,
+            phone: user.phone,
+            location: user.location
           }
         } catch (error) {
           throw new Error(error.message)
@@ -55,14 +57,18 @@ export const authOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      if (user?._id) {
-        token.id = user._id.toString();
+      if (user) {
+        token.id = user.id || user._id.toString();
+        token.phone = user.phone;
+        token.location = user.location;
       }
       return token
     },
     async session({ session, token }) {
-      if (token.id) {
-        session.user.id = token.id
+      if (token) {
+        session.user.id = token.id;
+        session.user.phone = token.phone;
+        session.user.location = token.location;
       }
       return session
     }

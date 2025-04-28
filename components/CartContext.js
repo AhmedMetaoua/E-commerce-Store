@@ -33,7 +33,7 @@ export function CartContextProvider({ children }) {
   useEffect(() => {
     if (session) {
       // Save cart to server when user is authenticated
-      if (cartProducts.length > 0) {
+      if (cartProducts.length >= 0) {
         axios.post('/api/cart', { products: cartProducts })
           .catch(error => {
             console.error('Error saving cart:', error)

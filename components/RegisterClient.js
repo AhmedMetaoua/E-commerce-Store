@@ -229,6 +229,8 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    phone: "",
+    location: ""
   })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -305,7 +307,7 @@ export default function RegisterPage() {
       } catch (error) {
         console.error("🔥 Axios Error:", error.response?.data || error.message)
         const newErrors = {}
-        newErrors.email = error.response?.data || error.message
+        newErrors.email = typeof error.response?.data === 'object' ? error.response.data.message : (error.response?.data || error.message)
         setErrors(newErrors)
         setIsLoading(false)
       }
@@ -351,6 +353,7 @@ export default function RegisterPage() {
             <Input
               type="text"
               name="userName"
+              placeholder="Enter your name"
               id="userName"
               autoComplete="given-name"
               value={formData.userName}
@@ -365,6 +368,7 @@ export default function RegisterPage() {
             <Input
               id="email"
               name="email"
+              placeholder="Enter your email"
               type="email"
               autoComplete="email"
               value={formData.email}
@@ -375,6 +379,32 @@ export default function RegisterPage() {
           </FormGroup>
 
           <FormGroup>
+            <Label htmlFor="phone">Phone number</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              name="location"
+              type="text"
+              autoComplete="address-line1"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="Enter your location"
+            />
+          </FormGroup>
+
+          <FormGroup>
             <Label htmlFor="password">Password</Label>
             <PasswordContainer>
               <Input
@@ -382,6 +412,7 @@ export default function RegisterPage() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
+                placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
                 error={errors.password}
@@ -439,6 +470,7 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 autoComplete="new-password"
+                placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 error={errors.confirmPassword}

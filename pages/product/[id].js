@@ -813,7 +813,7 @@ export default function ProductPage({ product }) {
             <BreadcrumbSeparator>/</BreadcrumbSeparator>
             <BreadcrumbLink href="/products">Products</BreadcrumbLink>
             <BreadcrumbSeparator>/</BreadcrumbSeparator>
-            <BreadcrumbLink href={`/category/${category}`}>{category}</BreadcrumbLink>
+            <BreadcrumbLink href="/products">{category}</BreadcrumbLink>
             <BreadcrumbSeparator>/</BreadcrumbSeparator>
             <span>{product.title}</span>
           </BreadcrumbNav>

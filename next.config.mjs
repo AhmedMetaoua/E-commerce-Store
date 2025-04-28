@@ -4,6 +4,10 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  // Set custom port
+  serverOptions: {
+    port: 3001,
+  },
 };
 
 export default nextConfig;

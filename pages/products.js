@@ -11,7 +11,7 @@ import { Category } from "@/models/Category"
 import Product from "@/models/Product"
 import styled from "styled-components"
 import FilterSidebar from "@/components/FilterSidebar"
-import { Filter, X, ChevronDown, ChevronUp, Grid3X3, Grid2X2, FilterIcon } from "lucide-react"
+import { Filter, X, ChevronDown, ChevronUp, FilterIcon, Search } from "lucide-react"
 import Head from "next/head"
 
 const PageContainer = styled.div`
@@ -303,10 +303,71 @@ const NoResults = styled.div`
   }
 `
 
+// New styled components for search bar
+const SearchContainer = styled.div`
+  width: 100%;
+  margin-bottom: 24px;
+`
+
+const SearchInputWrapper = styled.div`
+  position: relative;
+  width: 95%;
+`
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 12px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+  }
+  
+  &::placeholder {
+    color: #94a3b8;
+  }
+`
+
+const SearchIconWrapper = styled.div`
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+`
+
+const ClearButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  
+  &:hover {
+    color: #64748b;
+  }
+`
+
 export default function ProductsPage({ products, categories }) {
   const router = useRouter()
   const { query } = router
   const [filteredProducts, setFilteredProducts] = useState(products)
+  const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState({
     categories: [],
     properties: {},
@@ -411,6 +472,24 @@ export default function ProductsPage({ products, categories }) {
   useEffect(() => {
     let result = [...products]
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const searchTerms = searchQuery.toLowerCase().trim().split(" ")
+      result = result.filter((product) => {
+        const titleMatch = product.title.toLowerCase().includes(searchQuery.toLowerCase())
+        const descMatch = product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase())
+
+        // Check if all search terms are found in the product
+        const allTermsMatch = searchTerms.every(
+          (term) =>
+            product.title.toLowerCase().includes(term) ||
+            (product.description && product.description.toLowerCase().includes(term)),
+        )
+
+        return titleMatch || descMatch || allTermsMatch
+      })
+    }
+
     // Filter by categories
     if (activeFilters.categories.length > 0) {
       // Check if we have any child categories with their parents also selected
@@ -494,7 +573,15 @@ export default function ProductsPage({ products, categories }) {
     }
 
     setFilteredProducts(result)
-  }, [ activeFilters.categories, JSON.stringify(activeFilters.properties), activeFilters.priceRange.min, activeFilters.priceRange.max, sortOption])
+  }, [
+    activeFilters.categories,
+    JSON.stringify(activeFilters.properties),
+    activeFilters.priceRange.min,
+    activeFilters.priceRange.max,
+    sortOption,
+    searchQuery,
+    products,
+  ])
 
   const handleCategoryFilter = (categoryId) => {
     setActiveFilters((prev) => {
@@ -554,7 +641,7 @@ export default function ProductsPage({ products, categories }) {
           query: { category: activeFilters.categories[0] },
         },
         undefined,
-        { shallow: true }
+        { shallow: true },
       )
     } else if (activeFilters.categories.length === 0) {
       router.push(
@@ -562,7 +649,7 @@ export default function ProductsPage({ products, categories }) {
           pathname: router.pathname,
         },
         undefined,
-        { shallow: true }
+        { shallow: true },
       )
     }
   }, [activeFilters.categories, router.pathname])
@@ -600,6 +687,7 @@ export default function ProductsPage({ products, categories }) {
       properties: {},
       priceRange: { min: "", max: "" },
     })
+    setSearchQuery("")
     setPageTitle("All Products")
     // URL update handled by the effect watching activeFilters.categories
   }
@@ -661,11 +749,21 @@ export default function ProductsPage({ products, categories }) {
     activeFilters.categories.length > 0 ||
     Object.values(activeFilters.properties).some((values) => values.length > 0) ||
     activeFilters.priceRange.min !== "" ||
-    activeFilters.priceRange.max !== ""
+    activeFilters.priceRange.max !== "" ||
+    searchQuery !== ""
 
   // Get active filter tags for display
   const getActiveFilterTags = () => {
     const tags = []
+
+    // Search query filter
+    if (searchQuery) {
+      tags.push({
+        type: "search",
+        value: "search",
+        label: `Search: ${searchQuery}`,
+      })
+    }
 
     // Category filters
     activeFilters.categories.forEach((catId) => {
@@ -729,6 +827,16 @@ export default function ProductsPage({ products, categories }) {
     }
   }
 
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value)
+  }
+
+  // Clear search input
+  const clearSearch = () => {
+    setSearchQuery("")
+  }
+
   return (
     <PageContainer>
       <Head>
@@ -745,6 +853,26 @@ export default function ProductsPage({ products, categories }) {
             <ResultCount>{filteredProducts.length} products found</ResultCount>
           </div>
         </PageHeader>
+
+        {/* Search Bar */}
+        <SearchContainer>
+          <SearchInputWrapper>
+            <SearchIconWrapper>
+              <Search size={18} />
+            </SearchIconWrapper>
+            <SearchInput
+              type="text"
+              placeholder="Search products by name or description..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            {searchQuery && (
+              <ClearButton onClick={clearSearch}>
+                <X size={16} />
+              </ClearButton>
+            )}
+          </SearchInputWrapper>
+        </SearchContainer>
 
         <FiltersRow>
           <MobileFilterButton onClick={() => setShowMobileFilters(true)}>
@@ -819,15 +947,6 @@ export default function ProductsPage({ products, categories }) {
                 </SortDropdown>
               )}
             </SortContainer>
-
-            {/* <ViewToggle>
-              <ViewButton $active={gridView === "grid4"} onClick={() => setGridView("grid4")} title="Grid view">
-                <Grid3X3 size={16} />
-              </ViewButton>
-              <ViewButton $active={gridView === "grid2"} onClick={() => setGridView("grid2")} title="List view">
-                <Grid2X2 size={16} />
-              </ViewButton>
-            </ViewToggle> */}
           </div>
         </FiltersRow>
 
@@ -836,7 +955,7 @@ export default function ProductsPage({ products, categories }) {
             {getActiveFilterTags().map((tag, index) => (
               <FilterTag key={index}>
                 {tag.label}
-                <button onClick={() => removeFilter(tag.type, tag.value)}>
+                <button onClick={() => (tag.type === "search" ? clearSearch() : removeFilter(tag.type, tag.value))}>
                   <X size={12} />
                 </button>
               </FilterTag>

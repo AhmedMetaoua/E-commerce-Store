@@ -363,8 +363,8 @@ export default function FilterSidebar({
   isMobile = false,
 }) {
   const [expandedSections, setExpandedSections] = useState({
-    categories: true,
-    properties: true,
+    categories: false,
+    properties: false,
     price: true,
   })
 

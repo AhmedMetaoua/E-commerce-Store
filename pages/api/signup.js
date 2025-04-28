@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     await dbConnect()
 
-    const { userName, email, password } = req.body
+    const { userName, email, password, location, phone } = req.body
 
     // Check if user already exists
     const existingUser = await User.findOne({ email })
@@ -23,9 +23,11 @@ export default async function handler(req, res) {
 
     // Create new user
     const user = await User.create({
-      userName,
+      name: userName,
       email,
       password: hashedPassword,
+      location: location || "",
+      phone: phone || ""
     })
 
     // Remove password from response
@@ -33,7 +35,9 @@ export default async function handler(req, res) {
 
     res.status(201).json(userWithoutPassword)
   } catch (error) {
-    console.error("Signup error:", error)
-    res.status(500).json({ message: "Error creating user" })
+    console.error("🔥 Axios Error:", error.response?.data || error.message)
+    const newErrors = {}
+    newErrors.email = error.response?.data || error.message
+    res.status(500).json({ message: "Error creating user", errors: newErrors })
   }
 } 

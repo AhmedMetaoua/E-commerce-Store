@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const { userName, email, password } = req.body;
+            const { userName, email, password, location, phone } = req.body;
 
             if (!userName || !email || !password) {
                 return res.status(400).json({ error: 'All fields are required' });
@@ -22,7 +22,13 @@ export default async function handler(req, res) {
             }
 
             const hashedPwd = await bcrypt.hash(password, 8)
-            const user = await User.create({userName, email, password: hashedPwd})
+            const user = await User.create({
+                userName, 
+                email, 
+                password: hashedPwd,
+                location: location || "",
+                phone: phone || ""
+            })
             
             res.status(201).json(user);
         } catch (error) {
@@ -30,7 +36,4 @@ export default async function handler(req, res) {
             res.status(500).json({ error: error.message });
         }
     }
-
-
-
 }

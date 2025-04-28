@@ -231,14 +231,14 @@ export default function Header() {
                 ))}
               </DropdownContent>
             </DropdownContainer> */}
-
+            {console.log('user: ',session?.user)}
             {session ? (
               <DropdownContainer ref={accountRef}>
                 <DropdownButton onClick={() => setAccountOpen(!accountOpen)}>
                   Account ({session?.user?.name}) <ChevronDown size={16} />
                 </DropdownButton>
                 <DropdownContent $isOpen={accountOpen}>
-                  <DropdownItem href="/account/settings" onClick={() => setAccountOpen(false)}>
+                  <DropdownItem href="/settings" onClick={() => setAccountOpen(false)}>
                     Settings
                   </DropdownItem>
                   <DropdownItem href="/wishlist" onClick={() => setAccountOpen(false)}>
