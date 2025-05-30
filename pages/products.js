@@ -448,7 +448,7 @@ export default function ProductsPage({ products, categories }) {
         setPageTitle(`${category.name} Products`)
       }
     }
-  }, []) // Empty dependency array means this only runs once on mount
+  }, []) // Empty dependency array means this only runs once on mount categories, query.category
 
   // Helper function to identify child categories that are selected
   const getSelectedChildCategories = () => {
@@ -580,7 +580,7 @@ export default function ProductsPage({ products, categories }) {
     activeFilters.priceRange.max,
     sortOption,
     searchQuery,
-    products,
+    products,activeFilters.properties,
   ])
 
   const handleCategoryFilter = (categoryId) => {

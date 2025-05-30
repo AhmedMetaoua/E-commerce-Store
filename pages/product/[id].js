@@ -801,7 +801,7 @@ export default function ProductPage({ product }) {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [nextImage, prevImage])
 
   return (
     <PageWrapper>

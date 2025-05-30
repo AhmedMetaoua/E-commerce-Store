@@ -419,7 +419,7 @@ export default function CartPage() {
         .catch(err => console.error('Error updating order:', err));
     
     }
-  }, []);
+  }, [clearCart]);
 
   useEffect(() => {
     if (cartProducts.length > 0) {
@@ -528,7 +528,7 @@ export default function CartPage() {
                   </EmptyCartIcon>
                   <EmptyCartTitle>Your cart is empty</EmptyCartTitle>
                   <EmptyCartText>
-                    Looks like you haven't added anything to your cart yet.
+                    Looks like you haven&apos;t added anything to your cart yet.
                   </EmptyCartText>
                   <ContinueShoppingButton href="/">
                     <ShoppingBag size={18} />
