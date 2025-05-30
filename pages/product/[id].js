@@ -971,7 +971,7 @@ export default function ProductPage({ product }) {
                 <TabContent active={activeTab === "returns"}>
                   <h3>Returns & Refunds</h3>
                   <p>
-                    We offer a 30-day return policy. If you're not satisfied with your purchase, contact us to initiate
+                    We offer a 30-day return policy. If you&apos;re not satisfied with your purchase, contact us to initiate
                     a return.
                   </p>
                   <p>Refunds are processed within 7-10 business days after we receive the returned item.</p>

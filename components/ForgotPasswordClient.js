@@ -367,7 +367,7 @@ export default function ForgotPasswordPage() {
                 </SuccessIcon>
               </SuccessIconContainer>
               <SuccessTitle>Check your email</SuccessTitle>
-              <SuccessMessage>We've sent a password reset link to {email}</SuccessMessage>
+              <SuccessMessage>We&apos;ve sent a password reset link to {email}</SuccessMessage>
               <BackToLoginButton href="/login">Back to login</BackToLoginButton>
             </SuccessContainer>
           )}

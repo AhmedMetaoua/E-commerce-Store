@@ -490,7 +490,7 @@ export default function CartPage() {
                 <CheckCircle />
               </SuccessIcon>
               <SuccessTitle>Thank you for your order!</SuccessTitle>
-              <SuccessText>We'll email you when your order ships.</SuccessText>
+              <SuccessText>We&apos;ll email you when your order ships.</SuccessText>
               <ContinueShoppingButton href="/">
                 <ShoppingBag size={18} />
                 Continue Shopping

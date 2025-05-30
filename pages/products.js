@@ -1034,5 +1034,3 @@ export async function getServerSideProps() {
   }
 }
 
-// Below this would be your styled components declarations
-// PageContainer, Title, ResultCount, etc.
